@@ -295,7 +295,7 @@ def _sample_negative_indices(
 class Wav2Vec2NoLayerNormConvLayer(nn.Module):
     def __init__(self, config, layer_id=0):
         super().__init__()
-        self.in_conv_dim = config.conv_dim[layer_id - 1] if layer_id > 0 else 1
+        self.in_conv_dim = config.conv_dim[layer_id - 1] if layer_id > 0 else config.conv_input_dim
         self.out_conv_dim = config.conv_dim[layer_id]
 
         self.conv = nn.Conv1d(
@@ -316,7 +316,7 @@ class Wav2Vec2NoLayerNormConvLayer(nn.Module):
 class Wav2Vec2LayerNormConvLayer(nn.Module):
     def __init__(self, config, layer_id=0):
         super().__init__()
-        self.in_conv_dim = config.conv_dim[layer_id - 1] if layer_id > 0 else 1
+        self.in_conv_dim = config.conv_dim[layer_id - 1] if layer_id > 0 else config.conv_input_dim
         self.out_conv_dim = config.conv_dim[layer_id]
 
         self.conv = nn.Conv1d(
@@ -343,7 +343,7 @@ class Wav2Vec2LayerNormConvLayer(nn.Module):
 class Wav2Vec2GroupNormConvLayer(nn.Module):
     def __init__(self, config, layer_id=0):
         super().__init__()
-        self.in_conv_dim = config.conv_dim[layer_id - 1] if layer_id > 0 else 1
+        self.in_conv_dim = config.conv_dim[layer_id - 1] if layer_id > 0 else config.conv_input_dim
         self.out_conv_dim = config.conv_dim[layer_id]
 
         self.conv = nn.Conv1d(
@@ -448,7 +448,10 @@ class Wav2Vec2FeatureEncoder(nn.Module):
         self._requires_grad = False
 
     def forward(self, input_values):
-        hidden_states = input_values[:, None]
+        # Abraar
+        # hidden_states = input_values[:, None]
+        hidden_states = input_values
+        # Abraar
 
         # make sure hidden_states require grad for gradient_checkpointing
         if self._requires_grad and self.training:

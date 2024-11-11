@@ -220,6 +220,7 @@ class Wav2Vec2Config(PretrainedConfig):
         layer_norm_eps=1e-5,
         feat_extract_norm="group",
         feat_extract_activation="gelu",
+        conv_input_dim=1,
         conv_dim=(512, 512, 512, 512, 512, 512, 512),
         conv_stride=(5, 2, 2, 2, 2, 2, 2),
         conv_kernel=(10, 3, 3, 3, 3, 2, 2),
@@ -264,6 +265,7 @@ class Wav2Vec2Config(PretrainedConfig):
         self.hidden_size = hidden_size
         self.feat_extract_norm = feat_extract_norm
         self.feat_extract_activation = feat_extract_activation
+        self.conv_input_dim = conv_input_dim
         self.conv_dim = list(conv_dim)
         self.conv_stride = list(conv_stride)
         self.conv_kernel = list(conv_kernel)

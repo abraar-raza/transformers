@@ -95,7 +95,10 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
 
                 normed_input_values.append(normed_slice)
         else:
-            normed_input_values = [(x - x.mean()) / np.sqrt(x.var() + 1e-7) for x in input_values]
+            # Abraar
+            # normed_input_values = [(x - x.mean()) / np.sqrt(x.var() + 1e-7) for x in input_values]
+            normed_input_values = [(x - x.mean(axis=1, keepdims=True)) / np.sqrt(x.var(axis=1, keepdims=True) + 1e-7) for x in input_values]
+            # Abraar
 
         return normed_input_values
 
@@ -182,16 +185,22 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
                 "Failing to do so can result in silent errors that might be hard to debug."
             )
 
-        is_batched_numpy = isinstance(raw_speech, np.ndarray) and len(raw_speech.shape) > 1
-        if is_batched_numpy and len(raw_speech.shape) > 2:
-            raise ValueError(f"Only mono-channel audio is supported for input to {self}")
+        # Abraar - start
+        is_batched_numpy = isinstance(raw_speech, np.ndarray) and len(raw_speech.shape) > 2
+        # if is_batched_numpy and len(raw_speech.shape) > 2:
+        #     raise ValueError(f"Only mono-channel audio is supported for input to {self}")
         is_batched = is_batched_numpy or (
             isinstance(raw_speech, (list, tuple)) and (isinstance(raw_speech[0], (np.ndarray, tuple, list)))
         )
+        # Abraar - end
 
         # always return batch
         if not is_batched:
-            raw_speech = [raw_speech]
+            # Abraar
+            # raw_speech = [raw_speech]
+            raw_speech = [raw_speech.T]
+            # Abraar
+
 
         # convert into correct format for padding
         encoded_inputs = BatchFeature({"input_values": raw_speech})
@@ -204,6 +213,10 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
             pad_to_multiple_of=pad_to_multiple_of,
             return_attention_mask=return_attention_mask,
         )
+
+        # Abraar
+        padded_inputs["input_values"] = np.transpose(padded_inputs["input_values"], (0, 2, 1))
+        # Abraar
 
         # convert input values to correct format
         input_values = padded_inputs["input_values"]
