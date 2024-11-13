@@ -396,7 +396,10 @@ class Wav2Vec2PositionalConvEmbedding(nn.Module):
             self.conv = weight_norm(self.conv, name="weight", dim=2)
 
         self.padding = Wav2Vec2SamePadLayer(config.num_conv_pos_embeddings)
-        self.activation = ACT2FN[config.feat_extract_activation]
+        # Abraar
+        # self.activation = ACT2FN[config.feat_extract_activation]
+        self.activation = ACT2FN["gelu"]
+        # Abraar
 
     def forward(self, hidden_states):
         hidden_states = hidden_states.transpose(1, 2)
