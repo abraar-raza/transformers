@@ -79,7 +79,7 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
 
     @staticmethod
     def zero_mean_unit_var_norm(
-        input_values: List[np.ndarray], attention_mask: List[np.ndarray], padding_value: float = 0.0
+        feature_size, input_values: List[np.ndarray], attention_mask: List[np.ndarray], padding_value: float = 0.0
     ) -> List[np.ndarray]:
         """
         Every array in the list is normalized to have zero mean and unit variance
@@ -96,8 +96,10 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
                 normed_input_values.append(normed_slice)
         else:
             # Abraar
-            # normed_input_values = [(x - x.mean()) / np.sqrt(x.var() + 1e-7) for x in input_values]
-            normed_input_values = [(x - x.mean(axis=1, keepdims=True)) / np.sqrt(x.var(axis=1, keepdims=True) + 1e-7) for x in input_values]
+            if feature_size == 1:
+                normed_input_values = [(x - x.mean()) / np.sqrt(x.var() + 1e-7) for x in input_values]
+            else:
+                normed_input_values = [(x - x.mean(axis=1, keepdims=True)) / np.sqrt(x.var(axis=1, keepdims=True) + 1e-7) for x in input_values]
             # Abraar
 
         return normed_input_values
@@ -187,8 +189,9 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
 
         # Abraar - start
         is_batched_numpy = isinstance(raw_speech, np.ndarray) and len(raw_speech.shape) > 2
-        # if is_batched_numpy and len(raw_speech.shape) > 2:
-        #     raise ValueError(f"Only mono-channel audio is supported for input to {self}")
+        if self.feature_size == 1:
+            if is_batched_numpy and len(raw_speech.shape) > 2:
+                raise ValueError(f"Only mono-channel audio is supported for input to {self}")
         is_batched = is_batched_numpy or (
             isinstance(raw_speech, (list, tuple)) and (isinstance(raw_speech[0], (np.ndarray, tuple, list)))
         )
@@ -197,8 +200,10 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
         # always return batch
         if not is_batched:
             # Abraar
-            # raw_speech = [raw_speech]
-            raw_speech = [raw_speech.T]
+            if self.feature_size == 1:
+                raw_speech = [raw_speech]
+            else:
+                raw_speech = [raw_speech.T]
             # Abraar
 
 
@@ -215,7 +220,8 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
         )
 
         # Abraar
-        padded_inputs["input_values"] = np.transpose(padded_inputs["input_values"], (0, 2, 1))
+        if self.feature_size > 1:
+            padded_inputs["input_values"] = np.transpose(padded_inputs["input_values"], (0, 2, 1))
         # Abraar
 
         # convert input values to correct format
@@ -244,7 +250,7 @@ class Wav2Vec2FeatureExtractor(SequenceFeatureExtractor):
                 else None
             )
             padded_inputs["input_values"] = self.zero_mean_unit_var_norm(
-                padded_inputs["input_values"], attention_mask=attention_mask, padding_value=self.padding_value
+                self.feature_size, padded_inputs["input_values"], attention_mask=attention_mask, padding_value=self.padding_value
             )
 
         if return_tensors is not None:

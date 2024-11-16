@@ -444,6 +444,7 @@ class Wav2Vec2FeatureEncoder(nn.Module):
         self.conv_layers = nn.ModuleList(conv_layers)
         self.gradient_checkpointing = False
         self._requires_grad = True
+        self.config = config
 
     def _freeze_parameters(self):
         for param in self.parameters():
@@ -452,8 +453,10 @@ class Wav2Vec2FeatureEncoder(nn.Module):
 
     def forward(self, input_values):
         # Abraar
-        # hidden_states = input_values[:, None]
-        hidden_states = input_values
+        if self.config.conv_input_dim == 1:
+            hidden_states = input_values[:, None]
+        else:
+            hidden_states = input_values
         # Abraar
 
         # make sure hidden_states require grad for gradient_checkpointing
