@@ -2255,6 +2255,9 @@ class Wav2Vec2ForCTC(Wav2Vec2PreTrainedModel):
                 attention_mask if attention_mask is not None else torch.ones_like(input_values, dtype=torch.long)
             )
             input_lengths = self._get_feat_extract_output_lengths(attention_mask.sum(-1)).to(torch.long)
+            # Abraar
+            input_lengths = input_lengths[:, 0]
+            # Abraar
 
             # assuming that padded tokens are filled with -100
             # when not being attended to
